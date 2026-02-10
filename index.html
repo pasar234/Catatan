@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catatan Pintar</title>
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --bg-light: #f8f9fa;
+            --danger: #ff4d4d;
+            --text-dark: #202124;
+            --text-gray: #5f6368;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            max-width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        
+        /* Header Android Style */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .status-online {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+        
+        .screen {
+            display: none;
+            padding: 15px;
+            flex: 1;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Search Box */
+        .search-box {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            padding-right: 45px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #f1f3f4;
+            transition: 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            background: white;
+            border-color: var(--primary);
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-gray);
+        }
+        
+        /* Floating Action Button Style */
+        .btn-new-note {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Note Cards */
+        .notes-container {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .note-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: 0.2s;
+        }
+
+        .note-card:active {
+            transform: scale(0.97);
+            background: #f9f9f9;
+        }
+        
+        .note-card h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+        
+        .note-content {
+            font-size: 14px;
+            color: var(--text-gray);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Form Styling */
+        .form-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 20px;
+            padding: 10px;
+            margin-right: 10px;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 0;
+            border: none;
+            font-size: 16px;
+            background: transparent;
+            outline: none;
+        }
+
+        #title {
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+
+        #content {
+            min-height: 300px;
+            resize: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-save { background: #4CAF50; color: white; }
+        .btn-cancel { background: #f1f3f4; color: var(--text-dark); }
+        .btn-delete { background: var(--danger); color: white; margin-top: 10px; width: 100%; display: none; }
+
+        /* Toast Message */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        .toast.show { opacity: 1; visibility: visible; }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1><i class="fas fa-book-open"></i> Catatan Pintar</h1>
+            <div class="status-online">
+                <i class="fas fa-circle" style="font-size: 8px; color: #40ff00;"></i> <span>Offline Mode</span>
+            </div>
+        </div>
+        
+        <div id="screen-list" class="screen active">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Cari catatan...">
+                <i class="fas fa-search"></i>
+            </div>
+            
+            <button class="btn-new-note" id="add-note-button">
+                <i class="fas fa-plus"></i> Tambah Catatan Baru
+            </button>
+            
+            <div id="notes-container" class="notes-container"></div>
+            
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-sticky-note" style="font-size: 50px; margin-bottom: 10px;"></i>
+                <p>Belum ada catatan</p>
+            </div>
+        </div>
+        
+        <div id="screen-add" class="screen">
+            <div class="form-header">
+                <button class="btn-icon" id="back-button"><i class="fas fa-arrow-left"></i></button>
+                <h2 id="form-title">Catatan Baru</h2>
+            </div>
+            
+            <input type="text" id="title" class="form-input" placeholder="Judul Catatan">
+            <textarea id="content" class="form-input" placeholder="Tulis sesuatu..."></textarea>
+            
+            <div class="button-group">
+                <button class="btn btn-cancel" id="cancel-button">BATAL</button>
+                <button class="btn btn-save" id="save-button">SIMPAN</button>
+            </div>
+            <button class="btn btn-delete" id="delete-button"><i class="fas fa-trash"></i> HAPUS CATATAN</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // State Management
+        let notes = JSON.parse(localStorage.getItem('my-notes-app')) || [];
+        let editingNoteId = null;
+
+        // Elements
+        const screenList = document.getElementById('screen-list');
+        const screenAdd = document.getElementById('screen-add');
+        const notesContainer = document.getElementById('notes-container');
+        const emptyState = document.getElementById('empty-state');
+        const btnDelete = document.getElementById('delete-button');
+        const searchInput = document.getElementById('search-input');
+
+        // Navigasi
+        function showScreen(screenName) {
+            screenList.classList.remove('active');
+            screenAdd.classList.remove('active');
+            if(screenName === 'list') screenList.classList.add('active');
+            if(screenName === 'add') screenAdd.classList.add('active');
+        }
+
+        // Action: Klik Tambah Baru
+        document.getElementById('add-note-button').onclick = () => {
+            editingNoteId = null;
+            document.getElementById('title').value = '';
+            document.getElementById('content').value = '';
+            document.getElementById('form-title').innerText = 'Catatan Baru';
+            btnDelete.style.display = 'none';
+            showScreen('add');
+        };
+
+        // Action: Kembali/Batal
+        document.getElementById('back-button').onclick = () => showScreen('list');
+        document.getElementById('cancel-button').onclick = () => showScreen('list');
+
+        // Action: Simpan
+        document.getElementById('save-button').onclick = () => {
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+
+            if(!title && !content) {
+                showToast("Isi catatan terlebih dahulu");
+                return;
+            }
+
+            const noteData = {
+                id: editingNoteId || Date.now(),
+                title: title || "Tanpa Judul",
+                content: content,
+                updatedAt: new Date().toISOString()
+            };
+
+            if(editingNoteId) {
+                notes = notes.map(n => n.id === editingNoteId ? noteData : n);
+            } else {
+                notes.unshift(noteData);
+            }
+
+            saveAndRefresh();
+            showScreen('list');
+            showToast("Catatan disimpan");
+        };
+
+        // Action: Hapus
+        btnDelete.onclick = () => {
+            if(confirm("Hapus catatan ini?")) {
+                notes = notes.filter(n => n.id !== editingNoteId);
+                saveAndRefresh();
+                showScreen('list');
+                showToast("Catatan dihapus");
+            }
+        };
+
+        // Action: Cari
+        searchInput.oninput = (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = notes.filter(n => 
+                n.title.toLowerCase().includes(term) || 
+                n.content.toLowerCase().includes(term)
+            );
+            renderNotes(filtered);
+        };
+
+        // Core Functions
+        function saveAndRefresh() {
+            localStorage.setItem('my-notes-app', JSON.stringify(notes));
+            renderNotes();
+        }
+
+        function renderNotes(data = notes) {
+            notesContainer.innerHTML = '';
+            if(data.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            data.forEach(note => {
+                const date = new Date(note.updatedAt).toLocaleDateString('id-ID', {
+                    day: 'numeric', month: 'short'
+                });
+                
+                const div = document.createElement('div');
+                div.className = 'note-card';
+                div.innerHTML = `
+                    <h3>${note.title}</h3>
+                    <p class="note-content">${note.content || '<i>Tidak ada isi</i>'}</p>
+                    <small style="color: #bbb; font-size: 11px; margin-top: 8px; display: block;">
+                        <i class="far fa-clock"></i> ${date}
+                    </small>
+                `;
+                div.onclick = () => openEdit(note);
+                notesContainer.appendChild(div);
+            });
+        }
+
+        function openEdit(note) {
+            editingNoteId = note.id;
+            document.getElementById('title').value = note.title;
+            document.getElementById('content').value = note.content;
+            document.getElementById('form-title').innerText = 'Edit Catatan';
+            btnDelete.style.display = 'block';
+            showScreen('add');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Jalankan saat pertama buka
+        renderNotes();
+
+        // Daftarkan Service Worker (Opsional - untuk Offline)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+            });
+        }
+    </script>
+</body>
+</html>
